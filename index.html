@@ -109,6 +109,11 @@ button{font-family:inherit;cursor:pointer}
 .score{display:flex;justify-content:center;gap:28px;margin:16px 0 4px;flex-wrap:wrap}
 .score b{display:block;font-size:34px;color:var(--gold);line-height:1.1}
 .score span{font-size:12px;color:var(--mute)}
+.news{font-size:13px;color:var(--mute);font-style:italic;max-width:560px;margin:8px auto 4px}
+.epi{margin-top:12px;color:#c9c2e8;font-size:14px}
+.verdict{margin-top:6px;color:var(--gold);font-size:14px}
+.react{text-align:center;min-height:28px;margin-top:10px;font-size:19px;font-weight:500;color:var(--gold)}
+.react.on{animation:pop .4s cubic-bezier(.2,1.3,.4,1) both}
 .tags{display:grid;gap:10px;justify-content:center;margin:16px 0 0}
 .cb{text-align:center}
 .cb p{margin-top:6px;color:#ffd9a0;font-size:14.5px;font-weight:300;max-width:560px}
@@ -148,6 +153,7 @@ footer{text-align:center;color:#6f6a95;font-size:12px;margin-top:34px}
   <section id="stage" style="display:none">
     <div class="prog" id="prog"></div>
     <div id="stageCard"></div>
+    <div class="react" id="react"></div>
     <div class="stagebtn">
       <button class="btn" id="stop">✋ หยุด!</button>
       <button class="btn ghost" id="auto">⚡ ออโต้</button>
@@ -158,12 +164,15 @@ footer{text-align:center;color:#6f6a95;font-size:12px;margin-top:34px}
 
   <section id="summary">
     <div class="s-k">บทสรุปชะตาชีวิต</div>
+    <div class="news" id="s-news"></div>
     <div class="s-title" id="s-title"></div>
     <p class="s-story" id="s-story"></p>
     <div class="score">
       <div><b id="s-score">0</b><span>ดัชนีรอดชีวิต</span></div>
       <div><b id="s-rank">-</b><span>เกรดชาตินี้</span></div>
     </div>
+    <p class="epi" id="s-epi"></p>
+    <p class="verdict" id="s-verdict"></p>
     <div class="tags" id="s-tags"></div>
     <div class="roast" id="s-roast"></div>
     <p class="quote" id="s-quote"></p>
@@ -534,6 +543,10 @@ function summarize(){
    [lov===0 && kid>=1 && kid<3, 'ลูกมาจากไหน (ไม่ถาม)', 'ไม่มีแฟน แต่มีลูก ระบบขอสงวนคำอธิบาย'],
    [tr('job')>=4 && v('flaw').includes('ขี้อายต่อหน้าคนจำนวนมาก'), 'ผู้นำขี้อาย', 'ตำแหน่งสูงแต่ขี้อายต่อหน้าคนเยอะ ประชุมแต่ละครั้งคือบททดสอบ'],
    [tr('job')>=4 && v('flaw').includes('ตัดสินใจไม่ได้'), 'ผู้นำตัดสินใจไม่ได้', 'ตำแหน่งใหญ่ แต่เลือกอะไรไม่เป็น ลูกน้องคงเลือกให้ทุกวัน'],
+   [lov>=3 && v('goal').includes('ซ่อมความสัมพันธ์กับคนที่หายไป'), 'แฟนเพียบ แต่ใจอยู่กับคนที่หายไป', 'มีแฟนตั้ง '+lov+' คนแล้ว แต่ยังคิดถึงคนที่หายไป แฟนทุกคนควรรู้ไว้ว่าตัวเองเป็นตัวสำรอง'],
+   [lov>=3 && v('goal').includes('หาคนที่เข้าใจเรา'), 'แฟนเต็มบ้าน ยังหาคนเข้าใจไม่เจอ', 'แฟน '+lov+' คน แต่ยังไม่มีใครเข้าใจ ปัญหาน่าจะอยู่ที่วิธีเลือก'],
+   [lov>=3 && v('goal').includes('ตามหาคนที่เคยรัก'), 'ตามหารักเก่า ทั้งที่มีรักใหม่เพียบ', 'มีแฟน '+lov+' คน แต่ยังตามหาคนรักชาติก่อน ใจกว้างเกินไปหรือเปล่า'],
+   [lov>=3 && v('goal').includes('เป็นคนธรรมดาที่มีความสุข'), 'ธรรมดาที่ไม่ธรรมดา', 'แฟน '+lov+' คน แต่ตั้งเป้าเป็นคนธรรมดา คำว่าธรรมดาของคุณต่างจากคนทั่วไปมาก'],
   ];
   let hit = CB.filter(c=>c[0]);
   if(hit.length>5) hit = hit.sort(()=>Math.random()-.5).slice(0,5);
@@ -546,7 +559,16 @@ function summarize(){
   if(lov>=10) roast.push('บริหารเวลาดีๆ ระวังรถไฟชนกันจนต้องเกิดใหม่อีกรอบ');
   if(v('life')==='7 วัน') roast.push('มาไวเคลมไว เหมือนมาทดลองใช้ฟรี 7 วันแล้วลืมยกเลิก');
   if(v('life')==='999 ปี') roast.push('อยู่ยาวจนลืมรหัสผ่านเข้าบ้านไปสามรอบแล้ว');
-  lastExtra = {combos, cl, roast};
+const VERD = {SSS:'ยมบาลยืนปรบมือ และขอลายเซ็นเป็นที่ระลึก',S:'ยมบาลพยักหน้าอย่างพอใจ',A:'ชาตินี้น่าจะผ่านฉลุย ยกเว้นเรื่องรัก',B:'เฉลี่ยๆ ไปได้ ไม่ต้องกังวลมาก',C:'รอดแต่ต้องขยัน ยมบาลฝากบอกว่าอย่าประมาท',D:'ยมบาลลังเลว่าจะให้ผ่านหรือให้รีเทค',F:'ยมบาลขอโทษที่ระบบสุ่มโหดร้ายขนาดนี้ แต่ไม่รับผิดชอบ'};
+  const news = pick([
+    'ข่าวด่วน! '+v('tribe')+' อาชีพ'+v('job')+' ลืมตาใน'+v('world')+' ยังไม่ทราบว่าตั้งใจหรือไม่',
+    'สำนักข่าวภพภูมิรายงาน: พบ'+v('tribe')+' ติดปากว่า “'+v('catch')+'” สหายคู่ใจคือ'+v('companion'),
+    'เตือนภัย! “'+v('power')+'” ตกอยู่ในมือ'+v('tribe')+' ผู้มีจุดอ่อนคือ'+v('flaw')
+  ]);
+  const epi = '🪦 ที่นี่ฝังผู้จากไปเพราะ'+v('death')+' — '+pick(['ขอให้หลับให้สบาย','ไม่ต้องตื่นมาตอบแชทอีกแล้ว','ขอบคุณที่ทำให้เรารู้ว่าอย่าทำแบบนี้','เจอกันชาติหน้า ถ้าไม่ลืมกัน']);
+  const verdict = '⚖️ ยมบาลให้เกรด '+rank+': '+VERD[rank];
+  lastExtra = {combos, cl, roast, news, epi, verdict};
+  $('#s-news').textContent = '📰 '+news; $('#s-epi').textContent = epi; $('#s-verdict').textContent = verdict;
   $('#s-tags').innerHTML = cl.length
     ? cl.map(c=>`<div class="cb"><span class="tag">🏷️ ${c.tag}</span><p>${c.line}</p></div>`).join('')
     : '<div class="cb"><p>ชะตาครั้งนี้ไม่มีอะไรขัดแย้งกันเลย เรียบร้อยจนน่าเบื่อ ลองเกิดใหม่ดูไหม จะได้มีเรื่องให้แซว</p></div>';
@@ -582,6 +604,23 @@ function stageUpdate(id, hit){
   const bar = $('#sc-bar'); if(bar){ bar.style.transition = 'none'; bar.style.width = c.bar + '%'; }
   $('#sc-d').textContent = c.desc;
 }
+const REACT = {
+ 1:["เอาจริงดิ... 😐","ธรรมดามาก 555","โอเค... มันก็มี","ระบบปรานีหน่อยได้ไหม"],
+ 2:["พอไหว ไปต่อ","ก็ได้อยู่นะ","กลางๆ ไม่น่าเกลียด"],
+ 3:["เริ่มน่าสนใจแล้ว 👀","โอ้ หายากนะเนี่ย"],
+ 4:["โหดมาก! 🔥","มหากาพย์ดีแท้!"],
+ 5:["ตำนาน!!! ✨🔥","ทองทั้งแท่ง!","ระบบเสียสติไปแล้ว!"],
+ 0:["555","เฮ้ย ได้ไงอะ","น่าสนใจมาก...","ชีวิตก็แบบนี้แหละ","ไม่รู้จะดีใจหรือเสียใจ"]
+};
+function showReact(id){
+  const c = cur[id]; let t;
+  if(id==='luck') t = c.val<=10 ? 'ซวยตั้งแต่ยังไม่ทันเริ่ม 💀' : c.val<=30 ? 'พกยาดมไว้นะ...' : c.val>=90 ? 'ลูกรักพระเจ้าชัดๆ ✨' : 'กลางๆ ไม่ซวยไม่รวย';
+  else if(id==='lovers') t = c.val===0 ? 'โสด... แต่เป็นอิสระ 🕊️' : c.val>=10 ? 'ไม่ไหวแล้ว! 😳' : c.val>=6 ? 'เดี๋ยวนะ!? 😳' : pick(REACT[0]);
+  else if(id==='kids') t = c.val===0 ? 'ไม่มีลูก แต่มีเวลา' : c.val>=9 ? 'ตั้งหมู่บ้านได้เลย 🏘️' : pick(REACT[0]);
+  else if(id==='life') t = String(c.val)==='7 วัน' ? 'มาเร็วไปเร็วมาก 🏃' : String(c.val)==='999 ปี' ? 'ลืมรหัสผ่านไปแล้วใช่ไหม' : pick(REACT[c.tier||0]);
+  else t = pick(REACT[c.tier||0]);
+  const r = $('#react'); r.textContent = t; r.classList.remove('on'); void r.offsetWidth; r.classList.add('on');
+}
 function nextCard(){
   const id = queue.shift();
   if(!id){ finish(); return; }
@@ -590,6 +629,7 @@ function nextCard(){
   doneN++;
   $('#prog').textContent = 'เมนูที่ ' + doneN + ' / ' + total + ' · ' + ORDER[IDX[id]][1];
   const box = $('#stageCard'); box.classList.remove('enter'); void box.offsetWidth; box.classList.add('enter');
+  $('#react').textContent = '';
   stageBuild(id); stageUpdate(id, false);
   $('#stop').disabled = false; $('#stop').textContent = '✋ หยุด!';
   if(autoMode) autoTo = setTimeout(stopNext, 550 + Math.random()*500);
@@ -623,7 +663,7 @@ function stopCard(id){
   if(!spinning.has(id)) return;
   spinning.delete(id); clearTimeout(autoTo);
   if(id==='luck') luckStopped = true;
-  stageUpdate(id, true);
+  stageUpdate(id, true); showReact(id);
   $('#stop').disabled = true; $('#stop').textContent = '🎲 เมนูถัดไป...';
   setTimeout(()=>{
     const o = ORDER[IDX[id]];
@@ -675,9 +715,10 @@ function copyText(){
   });
   const ex = lastExtra || {combos:[],roast:[]};
   const txt = [
-    '☠️ ตายแล้วไปเกิดใหม่ ได้เป็น...', '🏆 ' + $('#s-title').textContent, '━━━━━━━━━━━━', ...lines, '━━━━━━━━━━━━',
+    '☠️ ตายแล้วไปเกิดใหม่ ได้เป็น...', '🏆 ' + $('#s-title').textContent, '📰 ' + ex.news, '━━━━━━━━━━━━', ...lines, '━━━━━━━━━━━━',
     ...ex.cl.map(c=>'🏷️ '+c.tag+' — '+c.line),
     ...ex.roast.map(r=>'💬 '+r),
+    ex.epi, ex.verdict,
     `📊 ดัชนีรอดชีวิต ${$('#s-score').textContent} · เกรด ${$('#s-rank').textContent}`,
     'แล้วของพวกแกล่ะ ได้อะไรกัน? 👀'
   ].join('\n');
